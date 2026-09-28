@@ -3,11 +3,11 @@ export default async function handler(req, res) {
 
   const { model, message, temperature } = req.body;
 
-  const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
+  const response = await fetch('https://integrate.api.nvidia.com/v1/chat/completions', {
     method: 'POST',
     headers: {
       'Content-Type': 'application/json',
-      'Authorization': `Bearer ${process.env.GROQ_API_KEY}`
+      'Authorization': `Bearer ${process.env.NVIDIA_NIM_API_KEY}`
     },
     body: JSON.stringify({
       model,
@@ -17,8 +17,7 @@ export default async function handler(req, res) {
   });
 
   const data = await response.json();
-
-  if (!response.ok) return res.status(response.status).json({ error: data.error?.message || 'Groq API error' });
+  if (!response.ok) return res.status(response.status).json({ error: data.error?.message || 'API error' });
 
   res.status(200).json({ reply: data.choices[0].message.content });
 }

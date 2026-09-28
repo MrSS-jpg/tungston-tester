@@ -16,6 +16,7 @@
     --dim: #666;
     --amber: #ffb300;
     --red: #ff3b3b;
+    --green: #39ff14;
   }
 
   body {
@@ -61,10 +62,11 @@
   #status.ready    { border-color: var(--white); color: var(--white); }
   #status.thinking { border-color: var(--amber); color: var(--amber); }
   #status.error    { border-color: var(--red);   color: var(--red);   }
+  #status.blocked  { border-color: var(--red);   color: var(--red);   }
 
   .layout {
     display: grid;
-    grid-template-columns: 260px 1fr;
+    grid-template-columns: 280px 1fr;
     min-height: calc(100vh - 56px);
   }
 
@@ -74,6 +76,7 @@
     flex-direction: column;
     padding: 24px 20px;
     gap: 24px;
+    overflow-y: auto;
   }
 
   .panel-label {
@@ -90,7 +93,7 @@
     color: var(--white);
     border: 2px solid var(--white);
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.78rem;
+    font-size: 0.75rem;
     padding: 10px 12px;
     appearance: none;
     -webkit-appearance: none;
@@ -98,18 +101,54 @@
   }
 
   select:focus { outline: 2px solid var(--amber); outline-offset: 0; }
-  optgroup { color: var(--dim); font-style: normal; font-size: 0.7rem; }
+  optgroup { color: var(--dim); font-style: normal; font-size: 0.68rem; }
   option { color: var(--white); background: var(--bg); }
 
   .model-info {
     border: 2px solid var(--border);
     padding: 12px;
     font-size: 0.7rem;
-    line-height: 1.8;
+    line-height: 1.9;
     color: var(--dim);
   }
 
   .model-info b { color: var(--amber); font-weight: 600; }
+
+  .limit-bar-wrap { display: flex; flex-direction: column; gap: 6px; }
+
+  .limit-bar-label {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.65rem;
+    color: var(--dim);
+  }
+
+  .limit-bar-label b { color: var(--white); }
+
+  .limit-bar-track {
+    height: 6px;
+    background: var(--border);
+    border: 1px solid #333;
+  }
+
+  .limit-bar-fill {
+    height: 100%;
+    background: var(--amber);
+    transition: width 0.2s;
+  }
+
+  .limit-bar-fill.warn  { background: #ff8800; }
+  .limit-bar-fill.crit  { background: var(--red); }
+
+  .blocked-badge {
+    display: none;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    color: var(--red);
+    border: 2px solid var(--red);
+    padding: 4px 10px;
+    text-align: center;
+  }
 
   .divider { height: 2px; background: var(--border); }
 
@@ -215,6 +254,7 @@
 
   textarea:focus { outline: 2px solid var(--amber); outline-offset: 0; }
   textarea::placeholder { color: var(--dim); }
+  textarea:disabled { opacity: 0.4; cursor: not-allowed; }
 
   #send {
     background: var(--amber);
@@ -253,23 +293,81 @@
     <div>
       <div class="panel-label">Model</div>
       <select id="model">
-        <optgroup label="── META / FAST">
-          <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+        <optgroup label="── NVIDIA / FLAGSHIP">
+          <option value="nvidia/nemotron-3-ultra-550b-a55b">Nemotron 3 Ultra 550B</option>
+          <option value="nvidia/llama-3.1-nemotron-ultra-253b-v1">Nemotron Ultra 253B</option>
+          <option value="nvidia/nemotron-4-340b-instruct">Nemotron 4 340B</option>
         </optgroup>
-        <optgroup label="── META / LARGE">
-          <option value="llama-3.3-70b-versatile" selected>llama-3.3-70b-versatile</option>
+        <optgroup label="── NVIDIA / MID">
+          <option value="nvidia/nemotron-3-super-120b-a12b">Nemotron 3 Super 120B</option>
+          <option value="nvidia/llama-3.1-nemotron-70b-instruct">Nemotron 70B</option>
+          <option value="nvidia/llama-3.1-nemotron-51b-instruct">Nemotron 51B</option>
+          <option value="nvidia/nemotron-nano-3-30b-a3b">Nemotron Nano 30B</option>
+          <option value="nvidia/nemotron-3-nano-omni-30b-a3b-reasoning">Nemotron Nano Omni 30B</option>
+        </optgroup>
+        <optgroup label="── META">
+          <option value="meta/llama-3.2-90b-vision-instruct">Llama 3.2 90B</option>
+          <option value="meta/llama2-70b">Llama 2 70B</option>
+          <option value="meta/codellama-70b">CodeLlama 70B</option>
+          <option value="meta/muse-glimmer-30b">Muse Glimmer 30B</option>
+        </optgroup>
+        <optgroup label="── MISTRAL">
+          <option value="mistralai/mistral-large-3-675b-instruct-2512">Mistral Large 3 675B</option>
+          <option value="mistralai/mistral-large-2-instruct">Mistral Large 2</option>
+          <option value="mistralai/mixtral-8x22b-v0.1">Mixtral 8x22B</option>
+          <option value="mistralai/codestral-22b-instruct-v0.1">Codestral 22B</option>
+          <option value="mistralai/mistral-nemotron">Mistral Nemotron</option>
+          <option value="mistralai/mistral-7b-instruct-v0.3">Mistral 7B</option>
+        </optgroup>
+        <optgroup label="── DEEPSEEK">
+          <option value="deepseek-ai/deepseek-v4.1-flash">DeepSeek V4.1 Flash</option>
+        </optgroup>
+        <optgroup label="── GOOGLE">
+          <option value="google/gemma-4-31b-it">Gemma 4 31B</option>
+        </optgroup>
+        <optgroup label="── KIMI">
+          <option value="moonshotai/kimi-k3">Kimi K3</option>
+          <option value="moonshotai/kimi-k2.6">Kimi K2.6</option>
+        </optgroup>
+        <optgroup label="── Z AI / GLM">
+          <option value="z-ai/glm-5.3">GLM 5.3</option>
+          <option value="z-ai/glm-5.3-flash">GLM 5.3 Flash</option>
         </optgroup>
         <optgroup label="── OPENAI OSS">
-          <option value="openai/gpt-oss-20b">gpt-oss-20b</option>
-          <option value="openai/gpt-oss-120b">gpt-oss-120b</option>
+          <option value="openai/gpt-oss-20b">GPT OSS 20B</option>
         </optgroup>
-        <optgroup label="── QWEN / REASONING">
-          <option value="qwen/qwen3.8-27b">qwen3.8-27b</option>
+        <optgroup label="── IBM / GRANITE">
+          <option value="ibm/granite-34b-code-instruct">Granite 34B Code</option>
+          <option value="ibm/granite-8b-code-instruct">Granite 8B Code</option>
+        </optgroup>
+        <optgroup label="── WRITER">
+          <option value="writer/palmyra-creative-122b">Palmyra Creative 122B</option>
+          <option value="writer/palmyra-fin-70b-32k">Palmyra Finance 70B</option>
+          <option value="writer/palmyra-med-70b-32k">Palmyra Medical 70B</option>
+        </optgroup>
+        <optgroup label="── OTHER">
+          <option value="ai21labs/jamba-1.5-large-instruct">Jamba 1.5 Large</option>
+          <option value="databricks/dbrx-instruct">DBRX Instruct</option>
+          <option value="nv-mistralai/mistral-nemo-12b-instruct">Mistral Nemo 12B</option>
+          <option value="poolside/laguna-xs-2.1">Laguna XS 2.1</option>
         </optgroup>
       </select>
     </div>
 
     <div class="model-info" id="model-info"></div>
+
+    <div class="limit-bar-wrap" id="limit-wrap">
+      <div class="panel-label">Request Limit</div>
+      <div class="limit-bar-label">
+        <span>USED</span>
+        <b id="limit-count">0 / 5</b>
+      </div>
+      <div class="limit-bar-track">
+        <div class="limit-bar-fill" id="limit-fill" style="width:0%"></div>
+      </div>
+    </div>
+
+    <div class="blocked-badge" id="blocked-badge">IP BLOCKED — MODEL LIMIT REACHED</div>
 
     <div class="divider"></div>
 
@@ -299,32 +397,110 @@
 </div>
 
 <script>
-  const statusEl  = document.getElementById('status');
-  const promptEl  = document.getElementById('prompt');
-  const modelEl   = document.getElementById('model');
-  const sendBtn   = document.getElementById('send');
-  const outputEl  = document.getElementById('output');
-  const metaEl    = document.getElementById('output-meta');
-  const emptyEl   = document.getElementById('empty');
-  const tempEl    = document.getElementById('temp');
-  const tempVal   = document.getElementById('temp-val');
-  const modelInfo = document.getElementById('model-info');
+  const statusEl   = document.getElementById('status');
+  const promptEl   = document.getElementById('prompt');
+  const modelEl    = document.getElementById('model');
+  const sendBtn    = document.getElementById('send');
+  const outputEl   = document.getElementById('output');
+  const metaEl     = document.getElementById('output-meta');
+  const emptyEl    = document.getElementById('empty');
+  const tempEl     = document.getElementById('temp');
+  const tempVal    = document.getElementById('temp-val');
+  const modelInfo  = document.getElementById('model-info');
+  const limitCount = document.getElementById('limit-count');
+  const limitFill  = document.getElementById('limit-fill');
+  const blockedBadge = document.getElementById('blocked-badge');
 
   const MODEL_META = {
-    'llama-3.1-8b-instant':    { context: '131,072', speed: '~560 t/s', tier: 'Production' },
-    'llama-3.3-70b-versatile': { context: '131,072', speed: '~280 t/s', tier: 'Production' },
-    'openai/gpt-oss-20b':      { context: '131,072', speed: '~500 t/s', tier: 'Production' },
-    'openai/gpt-oss-120b':     { context: '131,072', speed: '~500 t/s', tier: 'Production' },
-    'qwen/qwen3.8-27b':        { context: '131,072', speed: '~fast',    tier: 'Production' },
+    'nvidia/nemotron-3-ultra-550b-a55b':          { ctx: '1.0M',  limit: 2, tier: 'Flagship'  },
+    'nvidia/llama-3.1-nemotron-ultra-253b-v1':    { ctx: '131K',  limit: 2, tier: 'Flagship'  },
+    'nvidia/nemotron-4-340b-instruct':             { ctx: '131K',  limit: 2, tier: 'Flagship'  },
+    'mistralai/mistral-large-3-675b-instruct-2512':{ ctx: '8K',   limit: 2, tier: 'Flagship'  },
+    'nvidia/nemotron-3-super-120b-a12b':           { ctx: '262K',  limit: 3, tier: 'Mid'       },
+    'nvidia/llama-3.1-nemotron-70b-instruct':      { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'nvidia/llama-3.1-nemotron-51b-instruct':      { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'writer/palmyra-creative-122b':                { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'writer/palmyra-fin-70b-32k':                  { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'writer/palmyra-med-70b-32k':                  { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'meta/llama-3.2-90b-vision-instruct':          { ctx: '8K',   limit: 3, tier: 'Mid'       },
+    'mistralai/mistral-large-2-instruct':          { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'mistralai/mixtral-8x22b-v0.1':               { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'ai21labs/jamba-1.5-large-instruct':           { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'databricks/dbrx-instruct':                    { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'moonshotai/kimi-k3':                          { ctx: '1.0M',  limit: 4, tier: 'Standard'  },
+    'moonshotai/kimi-k2.6':                        { ctx: '262K',  limit: 4, tier: 'Standard'  },
+    'z-ai/glm-5.3':                               { ctx: '1.3M',  limit: 4, tier: 'Standard'  },
+    'z-ai/glm-5.3-flash':                         { ctx: '1.3M',  limit: 4, tier: 'Standard'  },
+    'deepseek-ai/deepseek-v4.1-flash':            { ctx: '1.0M',  limit: 4, tier: 'Standard'  },
+    'nvidia/nemotron-nano-3-30b-a3b':             { ctx: '131K',  limit: 4, tier: 'Standard'  },
+    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning':{ ctx:'256K', limit: 4, tier: 'Standard'  },
+    'google/gemma-4-31b-it':                      { ctx: '262K',  limit: 4, tier: 'Standard'  },
+    'ibm/granite-34b-code-instruct':              { ctx: '131K',  limit: 4, tier: 'Standard'  },
+    'mistralai/codestral-22b-instruct-v0.1':      { ctx: '131K',  limit: 4, tier: 'Standard'  },
+    'poolside/laguna-xs-2.1':                     { ctx: '262K',  limit: 4, tier: 'Standard'  },
+    'meta/llama2-70b':                            { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'meta/codellama-70b':                         { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'meta/muse-glimmer-30b':                      { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'mistralai/mistral-nemotron':                 { ctx: '8K',   limit: 5, tier: 'Basic'     },
+    'mistralai/mistral-7b-instruct-v0.3':         { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'nv-mistralai/mistral-nemo-12b-instruct':     { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'openai/gpt-oss-20b':                         { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'ibm/granite-8b-code-instruct':               { ctx: '131K',  limit: 5, tier: 'Basic'     },
   };
+
+  const STORAGE_KEY = 'tungston_limits_v1';
+
+  function getLimits() {
+    try { return JSON.parse(localStorage.getItem(STORAGE_KEY)) || {}; } catch { return {}; }
+  }
+
+  function saveLimits(data) {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+  }
+
+  function getUsed(model) {
+    return getLimits()[model] || 0;
+  }
+
+  function incrementUsed(model) {
+    const data = getLimits();
+    data[model] = (data[model] || 0) + 1;
+    saveLimits(data);
+  }
+
+  function isBlocked(model) {
+    const meta = MODEL_META[model];
+    if (!meta) return false;
+    return getUsed(model) >= meta.limit;
+  }
+
+  function updateLimitUI() {
+    const model = modelEl.value;
+    const meta  = MODEL_META[model] || { limit: 5 };
+    const used  = getUsed(model);
+    const max   = meta.limit;
+    const pct   = Math.min((used / max) * 100, 100);
+
+    limitCount.textContent = `${used} / ${max}`;
+    limitFill.style.width  = pct + '%';
+    limitFill.className    = 'limit-bar-fill' + (pct >= 100 ? ' crit' : pct >= 60 ? ' warn' : '');
+
+    const blocked = used >= max;
+    blockedBadge.style.display = blocked ? 'block' : 'none';
+    sendBtn.disabled  = blocked;
+    promptEl.disabled = blocked;
+    if (blocked) setStatus('BLOCKED');
+    else if (statusEl.textContent === 'BLOCKED') setStatus('READY');
+  }
 
   function updateModelInfo() {
     const m = MODEL_META[modelEl.value] || {};
     modelInfo.innerHTML = `
-      <div><b>CONTEXT</b> ${m.context || '—'} tokens</div>
-      <div><b>SPEED</b> ${m.speed || '—'}</div>
+      <div><b>CONTEXT</b> ${m.ctx || '—'}</div>
       <div><b>TIER</b> ${m.tier || '—'}</div>
+      <div><b>LIMIT</b> ${m.limit || '—'} req / IP</div>
     `;
+    updateLimitUI();
   }
 
   modelEl.addEventListener('change', updateModelInfo);
@@ -346,14 +522,15 @@
   promptEl.addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) send(); });
 
   async function send() {
+    const model   = modelEl.value;
     const message = promptEl.value.trim();
-    if (!message) return;
+    if (!message || isBlocked(model)) return;
 
     sendBtn.disabled = true;
     setStatus('THINKING');
-    emptyEl.style.display = 'none';
-    outputEl.style.display = 'none';
-    metaEl.style.display = 'none';
+    emptyEl.style.display   = 'none';
+    outputEl.style.display  = 'none';
+    metaEl.style.display    = 'none';
     outputEl.classList.remove('error');
 
     const t0 = Date.now();
@@ -362,30 +539,28 @@
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          model: modelEl.value,
-          message,
-          temperature: parseFloat(tempEl.value)
-        })
+        body: JSON.stringify({ model, message, temperature: parseFloat(tempEl.value) })
       });
 
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || 'Request failed');
 
+      incrementUsed(model);
+      updateLimitUI();
+
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      metaEl.textContent = `${modelEl.value} · ${elapsed}s · temp ${tempEl.value}`;
+      metaEl.textContent  = `${model} · ${elapsed}s · temp ${tempEl.value}`;
       metaEl.style.display = 'block';
       outputEl.textContent = data.reply;
       outputEl.style.display = 'block';
       setStatus('READY');
     } catch (err) {
-      metaEl.textContent = 'ERROR';
+      metaEl.textContent   = 'ERROR';
       metaEl.style.display = 'block';
       outputEl.textContent = err.message;
       outputEl.classList.add('error');
       outputEl.style.display = 'block';
       setStatus('ERROR');
-    } finally {
       sendBtn.disabled = false;
     }
   }
