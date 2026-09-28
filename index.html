@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tungston Tester</title>
 <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Archivo+Black&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/marked/9.1.6/marked.min.js"></script>
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
@@ -16,7 +17,6 @@
     --dim: #666;
     --amber: #ffb300;
     --red: #ff3b3b;
-    --green: #39ff14;
   }
 
   body {
@@ -134,11 +134,10 @@
   .limit-bar-fill {
     height: 100%;
     background: var(--amber);
-    transition: width 0.2s;
   }
 
-  .limit-bar-fill.warn  { background: #ff8800; }
-  .limit-bar-fill.crit  { background: var(--red); }
+  .limit-bar-fill.warn { background: #ff8800; }
+  .limit-bar-fill.crit { background: var(--red); }
 
   .blocked-badge {
     display: none;
@@ -219,14 +218,151 @@
     border-right: 2px solid var(--border);
     border-bottom: 2px solid var(--border);
     padding: 20px 24px;
-    font-size: 0.85rem;
+    font-size: 0.875rem;
     line-height: 1.8;
-    white-space: pre-wrap;
-    word-break: break-word;
     background: var(--surface);
   }
 
-  .output-block.error { border-left-color: var(--red); }
+  .output-block.error {
+    border-left-color: var(--red);
+    white-space: pre-wrap;
+    word-break: break-word;
+  }
+
+  /* Markdown rendered content */
+  .output-block h1, .output-block h2, .output-block h3,
+  .output-block h4, .output-block h5, .output-block h6 {
+    font-family: 'Archivo Black', sans-serif;
+    color: var(--white);
+    margin: 1.2em 0 0.5em;
+    line-height: 1.3;
+    letter-spacing: 0.04em;
+  }
+
+  .output-block h1 { font-size: 1.3rem; border-bottom: 2px solid var(--amber); padding-bottom: 6px; }
+  .output-block h2 { font-size: 1.1rem; border-bottom: 1px solid var(--border); padding-bottom: 4px; }
+  .output-block h3 { font-size: 0.95rem; color: var(--amber); }
+  .output-block h4 { font-size: 0.85rem; color: var(--dim); }
+
+  .output-block p { margin: 0.6em 0; }
+
+  .output-block strong { color: var(--white); font-weight: 600; }
+  .output-block em { color: #ccc; font-style: italic; }
+
+  .output-block ul, .output-block ol {
+    padding-left: 1.5em;
+    margin: 0.6em 0;
+  }
+
+  .output-block li { margin: 0.3em 0; }
+
+  .output-block blockquote {
+    border-left: 4px solid var(--dim);
+    padding: 8px 16px;
+    margin: 0.8em 0;
+    color: var(--dim);
+    background: #111;
+  }
+
+  .output-block hr {
+    border: none;
+    border-top: 2px solid var(--border);
+    margin: 1em 0;
+  }
+
+  .output-block table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 0.8em 0;
+    font-size: 0.82rem;
+  }
+
+  .output-block th {
+    background: #1e1e1e;
+    color: var(--amber);
+    border: 2px solid var(--border);
+    padding: 8px 12px;
+    text-align: left;
+    font-family: 'Archivo Black', sans-serif;
+    letter-spacing: 0.06em;
+    font-size: 0.75rem;
+  }
+
+  .output-block td {
+    border: 1px solid var(--border);
+    padding: 8px 12px;
+    color: var(--white);
+  }
+
+  .output-block tr:nth-child(even) td { background: #111; }
+
+  .output-block a {
+    color: var(--amber);
+    text-decoration: underline;
+    text-underline-offset: 3px;
+  }
+
+  /* Inline code */
+  .output-block :not(pre) > code {
+    background: #1e1e1e;
+    color: var(--amber);
+    padding: 2px 6px;
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.82em;
+  }
+
+  /* Code blocks */
+  .code-wrap {
+    position: relative;
+    margin: 0.8em 0;
+  }
+
+  .code-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background: #1a1a1a;
+    border: 2px solid var(--border);
+    border-bottom: none;
+    padding: 6px 12px;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 0.1em;
+  }
+
+  .copy-btn {
+    background: transparent;
+    color: var(--dim);
+    border: 1px solid var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.62rem;
+    padding: 3px 10px;
+    cursor: pointer;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+
+  .copy-btn:hover { border-color: var(--amber); color: var(--amber); }
+  .copy-btn.copied { border-color: #39ff14; color: #39ff14; }
+
+  .output-block pre {
+    background: #0d0d0d;
+    border: 2px solid var(--border);
+    border-top: none;
+    padding: 16px;
+    overflow-x: auto;
+    margin: 0;
+  }
+
+  .output-block pre code {
+    background: transparent;
+    border: none;
+    padding: 0;
+    color: var(--white);
+    font-size: 0.82rem;
+    line-height: 1.7;
+  }
 
   .input-bar {
     border-top: 3px solid var(--white);
@@ -297,6 +433,7 @@
           <option value="nvidia/nemotron-3-ultra-550b-a55b">Nemotron 3 Ultra 550B</option>
           <option value="nvidia/llama-3.1-nemotron-ultra-253b-v1">Nemotron Ultra 253B</option>
           <option value="nvidia/nemotron-4-340b-instruct">Nemotron 4 340B</option>
+          <option value="mistralai/mistral-large-3-675b-instruct-2512">Mistral Large 3 675B</option>
         </optgroup>
         <optgroup label="── NVIDIA / MID">
           <option value="nvidia/nemotron-3-super-120b-a12b">Nemotron 3 Super 120B</option>
@@ -312,7 +449,6 @@
           <option value="meta/muse-glimmer-30b">Muse Glimmer 30B</option>
         </optgroup>
         <optgroup label="── MISTRAL">
-          <option value="mistralai/mistral-large-3-675b-instruct-2512">Mistral Large 3 675B</option>
           <option value="mistralai/mistral-large-2-instruct">Mistral Large 2</option>
           <option value="mistralai/mixtral-8x22b-v0.1">Mixtral 8x22B</option>
           <option value="mistralai/codestral-22b-instruct-v0.1">Codestral 22B</option>
@@ -356,7 +492,7 @@
 
     <div class="model-info" id="model-info"></div>
 
-    <div class="limit-bar-wrap" id="limit-wrap">
+    <div class="limit-bar-wrap">
       <div class="panel-label">Request Limit</div>
       <div class="limit-bar-label">
         <span>USED</span>
@@ -397,55 +533,80 @@
 </div>
 
 <script>
-  const statusEl   = document.getElementById('status');
-  const promptEl   = document.getElementById('prompt');
-  const modelEl    = document.getElementById('model');
-  const sendBtn    = document.getElementById('send');
-  const outputEl   = document.getElementById('output');
-  const metaEl     = document.getElementById('output-meta');
-  const emptyEl    = document.getElementById('empty');
-  const tempEl     = document.getElementById('temp');
-  const tempVal    = document.getElementById('temp-val');
-  const modelInfo  = document.getElementById('model-info');
-  const limitCount = document.getElementById('limit-count');
-  const limitFill  = document.getElementById('limit-fill');
-  const blockedBadge = document.getElementById('blocked-badge');
+  const statusEl    = document.getElementById('status');
+  const promptEl    = document.getElementById('prompt');
+  const modelEl     = document.getElementById('model');
+  const sendBtn     = document.getElementById('send');
+  const outputEl    = document.getElementById('output');
+  const metaEl      = document.getElementById('output-meta');
+  const emptyEl     = document.getElementById('empty');
+  const tempEl      = document.getElementById('temp');
+  const tempVal     = document.getElementById('temp-val');
+  const modelInfo   = document.getElementById('model-info');
+  const limitCount  = document.getElementById('limit-count');
+  const limitFill   = document.getElementById('limit-fill');
+  const blockedBadge= document.getElementById('blocked-badge');
+
+  marked.setOptions({
+    breaks: true,
+    gfm: true,
+  });
+
+  const renderer = new marked.Renderer();
+
+  renderer.code = function(code, lang) {
+    const language = lang || 'plaintext';
+    const escaped = code
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+    return `
+      <div class="code-wrap">
+        <div class="code-header">
+          <span>${language.toUpperCase()}</span>
+          <button class="copy-btn" onclick="copyCode(this)">COPY</button>
+        </div>
+        <pre><code>${escaped}</code></pre>
+      </div>`;
+  };
+
+  marked.use({ renderer });
 
   const MODEL_META = {
-    'nvidia/nemotron-3-ultra-550b-a55b':          { ctx: '1.0M',  limit: 2, tier: 'Flagship'  },
-    'nvidia/llama-3.1-nemotron-ultra-253b-v1':    { ctx: '131K',  limit: 2, tier: 'Flagship'  },
-    'nvidia/nemotron-4-340b-instruct':             { ctx: '131K',  limit: 2, tier: 'Flagship'  },
-    'mistralai/mistral-large-3-675b-instruct-2512':{ ctx: '8K',   limit: 2, tier: 'Flagship'  },
-    'nvidia/nemotron-3-super-120b-a12b':           { ctx: '262K',  limit: 3, tier: 'Mid'       },
-    'nvidia/llama-3.1-nemotron-70b-instruct':      { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'nvidia/llama-3.1-nemotron-51b-instruct':      { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'writer/palmyra-creative-122b':                { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'writer/palmyra-fin-70b-32k':                  { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'writer/palmyra-med-70b-32k':                  { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'meta/llama-3.2-90b-vision-instruct':          { ctx: '8K',   limit: 3, tier: 'Mid'       },
-    'mistralai/mistral-large-2-instruct':          { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'mistralai/mixtral-8x22b-v0.1':               { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'ai21labs/jamba-1.5-large-instruct':           { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'databricks/dbrx-instruct':                    { ctx: '131K',  limit: 3, tier: 'Mid'       },
-    'moonshotai/kimi-k3':                          { ctx: '1.0M',  limit: 4, tier: 'Standard'  },
-    'moonshotai/kimi-k2.6':                        { ctx: '262K',  limit: 4, tier: 'Standard'  },
-    'z-ai/glm-5.3':                               { ctx: '1.3M',  limit: 4, tier: 'Standard'  },
-    'z-ai/glm-5.3-flash':                         { ctx: '1.3M',  limit: 4, tier: 'Standard'  },
-    'deepseek-ai/deepseek-v4.1-flash':            { ctx: '1.0M',  limit: 4, tier: 'Standard'  },
-    'nvidia/nemotron-nano-3-30b-a3b':             { ctx: '131K',  limit: 4, tier: 'Standard'  },
-    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning':{ ctx:'256K', limit: 4, tier: 'Standard'  },
-    'google/gemma-4-31b-it':                      { ctx: '262K',  limit: 4, tier: 'Standard'  },
-    'ibm/granite-34b-code-instruct':              { ctx: '131K',  limit: 4, tier: 'Standard'  },
-    'mistralai/codestral-22b-instruct-v0.1':      { ctx: '131K',  limit: 4, tier: 'Standard'  },
-    'poolside/laguna-xs-2.1':                     { ctx: '262K',  limit: 4, tier: 'Standard'  },
-    'meta/llama2-70b':                            { ctx: '131K',  limit: 5, tier: 'Basic'     },
-    'meta/codellama-70b':                         { ctx: '131K',  limit: 5, tier: 'Basic'     },
-    'meta/muse-glimmer-30b':                      { ctx: '131K',  limit: 5, tier: 'Basic'     },
-    'mistralai/mistral-nemotron':                 { ctx: '8K',   limit: 5, tier: 'Basic'     },
-    'mistralai/mistral-7b-instruct-v0.3':         { ctx: '131K',  limit: 5, tier: 'Basic'     },
-    'nv-mistralai/mistral-nemo-12b-instruct':     { ctx: '131K',  limit: 5, tier: 'Basic'     },
-    'openai/gpt-oss-20b':                         { ctx: '131K',  limit: 5, tier: 'Basic'     },
-    'ibm/granite-8b-code-instruct':               { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'nvidia/nemotron-3-ultra-550b-a55b':           { ctx: '1.0M',  limit: 2, tier: 'Flagship'  },
+    'nvidia/llama-3.1-nemotron-ultra-253b-v1':     { ctx: '131K',  limit: 2, tier: 'Flagship'  },
+    'nvidia/nemotron-4-340b-instruct':              { ctx: '131K',  limit: 2, tier: 'Flagship'  },
+    'mistralai/mistral-large-3-675b-instruct-2512':{ ctx: '8K',    limit: 2, tier: 'Flagship'  },
+    'nvidia/nemotron-3-super-120b-a12b':            { ctx: '262K',  limit: 3, tier: 'Mid'       },
+    'nvidia/llama-3.1-nemotron-70b-instruct':       { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'nvidia/llama-3.1-nemotron-51b-instruct':       { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'writer/palmyra-creative-122b':                 { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'writer/palmyra-fin-70b-32k':                   { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'writer/palmyra-med-70b-32k':                   { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'meta/llama-3.2-90b-vision-instruct':           { ctx: '8K',    limit: 3, tier: 'Mid'       },
+    'mistralai/mistral-large-2-instruct':           { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'mistralai/mixtral-8x22b-v0.1':                { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'ai21labs/jamba-1.5-large-instruct':            { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'databricks/dbrx-instruct':                     { ctx: '131K',  limit: 3, tier: 'Mid'       },
+    'moonshotai/kimi-k3':                           { ctx: '1.0M',  limit: 4, tier: 'Standard'  },
+    'moonshotai/kimi-k2.6':                         { ctx: '262K',  limit: 4, tier: 'Standard'  },
+    'z-ai/glm-5.3':                                { ctx: '1.3M',  limit: 4, tier: 'Standard'  },
+    'z-ai/glm-5.3-flash':                          { ctx: '1.3M',  limit: 4, tier: 'Standard'  },
+    'deepseek-ai/deepseek-v4.1-flash':             { ctx: '1.0M',  limit: 4, tier: 'Standard'  },
+    'nvidia/nemotron-nano-3-30b-a3b':              { ctx: '131K',  limit: 4, tier: 'Standard'  },
+    'nvidia/nemotron-3-nano-omni-30b-a3b-reasoning':{ ctx: '256K', limit: 4, tier: 'Standard'  },
+    'google/gemma-4-31b-it':                       { ctx: '262K',  limit: 4, tier: 'Standard'  },
+    'ibm/granite-34b-code-instruct':               { ctx: '131K',  limit: 4, tier: 'Standard'  },
+    'mistralai/codestral-22b-instruct-v0.1':       { ctx: '131K',  limit: 4, tier: 'Standard'  },
+    'poolside/laguna-xs-2.1':                      { ctx: '262K',  limit: 4, tier: 'Standard'  },
+    'meta/llama2-70b':                             { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'meta/codellama-70b':                          { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'meta/muse-glimmer-30b':                       { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'mistralai/mistral-nemotron':                  { ctx: '8K',    limit: 5, tier: 'Basic'     },
+    'mistralai/mistral-7b-instruct-v0.3':          { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'nv-mistralai/mistral-nemo-12b-instruct':      { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'openai/gpt-oss-20b':                          { ctx: '131K',  limit: 5, tier: 'Basic'     },
+    'ibm/granite-8b-code-instruct':                { ctx: '131K',  limit: 5, tier: 'Basic'     },
   };
 
   const STORAGE_KEY = 'tungston_limits_v1';
@@ -458,9 +619,7 @@
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
   }
 
-  function getUsed(model) {
-    return getLimits()[model] || 0;
-  }
+  function getUsed(model) { return getLimits()[model] || 0; }
 
   function incrementUsed(model) {
     const data = getLimits();
@@ -475,15 +634,15 @@
   }
 
   function updateLimitUI() {
-    const model = modelEl.value;
-    const meta  = MODEL_META[model] || { limit: 5 };
-    const used  = getUsed(model);
-    const max   = meta.limit;
-    const pct   = Math.min((used / max) * 100, 100);
+    const model   = modelEl.value;
+    const meta    = MODEL_META[model] || { limit: 5 };
+    const used    = getUsed(model);
+    const max     = meta.limit;
+    const pct     = Math.min((used / max) * 100, 100);
 
-    limitCount.textContent = `${used} / ${max}`;
-    limitFill.style.width  = pct + '%';
-    limitFill.className    = 'limit-bar-fill' + (pct >= 100 ? ' crit' : pct >= 60 ? ' warn' : '');
+    limitCount.textContent  = `${used} / ${max}`;
+    limitFill.style.width   = pct + '%';
+    limitFill.className     = 'limit-bar-fill' + (pct >= 100 ? ' crit' : pct >= 60 ? ' warn' : '');
 
     const blocked = used >= max;
     blockedBadge.style.display = blocked ? 'block' : 'none';
@@ -518,6 +677,18 @@
     statusEl.textContent = s;
   }
 
+  window.copyCode = function(btn) {
+    const pre = btn.closest('.code-wrap').querySelector('pre');
+    navigator.clipboard.writeText(pre.innerText).then(() => {
+      btn.textContent = 'COPIED';
+      btn.classList.add('copied');
+      setTimeout(() => {
+        btn.textContent = 'COPY';
+        btn.classList.remove('copied');
+      }, 2000);
+    });
+  };
+
   sendBtn.addEventListener('click', send);
   promptEl.addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) send(); });
 
@@ -528,9 +699,9 @@
 
     sendBtn.disabled = true;
     setStatus('THINKING');
-    emptyEl.style.display   = 'none';
-    outputEl.style.display  = 'none';
-    metaEl.style.display    = 'none';
+    emptyEl.style.display  = 'none';
+    outputEl.style.display = 'none';
+    metaEl.style.display   = 'none';
     outputEl.classList.remove('error');
 
     const t0 = Date.now();
@@ -549,9 +720,9 @@
       updateLimitUI();
 
       const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
-      metaEl.textContent  = `${model} · ${elapsed}s · temp ${tempEl.value}`;
+      metaEl.textContent   = `${model} · ${elapsed}s · temp ${tempEl.value}`;
       metaEl.style.display = 'block';
-      outputEl.textContent = data.reply;
+      outputEl.innerHTML   = marked.parse(data.reply);
       outputEl.style.display = 'block';
       setStatus('READY');
     } catch (err) {
