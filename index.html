@@ -4,228 +4,406 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tungston Tester</title>
-<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Archivo+Black&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:ital,wght@0,400;0,600;1,400&family=Archivo+Black&display=swap" rel="stylesheet">
 <style>
   *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
   :root {
-    --black: #0a0a0a;
-    --white: #f0f0f0;
+    --bg: #0f0f0f;
+    --surface: #161616;
+    --border: #2a2a2a;
+    --white: #e8e8e8;
+    --dim: #666;
     --amber: #ffb300;
-    --border: 2px solid #f0f0f0;
+    --amber-dim: #7a5500;
+    --red: #ff3b3b;
+    --green: #39ff14;
   }
 
   body {
-    background: var(--black);
+    background: var(--bg);
     color: var(--white);
     font-family: 'IBM Plex Mono', monospace;
     min-height: 100vh;
-    display: flex;
-    flex-direction: column;
+    display: grid;
+    grid-template-rows: auto 1fr;
   }
 
   header {
-    border-bottom: var(--border);
-    padding: 16px 24px;
+    border-bottom: 3px solid var(--white);
+    padding: 0 28px;
+    height: 56px;
     display: flex;
     align-items: center;
     justify-content: space-between;
+    background: var(--bg);
+    position: sticky;
+    top: 0;
+    z-index: 10;
   }
 
-  header h1 {
+  .logo {
     font-family: 'Archivo Black', sans-serif;
-    font-size: 1.2rem;
-    letter-spacing: 0.05em;
+    font-size: 1rem;
+    letter-spacing: 0.12em;
     text-transform: uppercase;
   }
 
+  .logo span { color: var(--amber); }
+
   #status {
-    font-size: 0.75rem;
+    font-size: 0.65rem;
     font-weight: 600;
-    letter-spacing: 0.1em;
-    padding: 4px 10px;
+    letter-spacing: 0.14em;
+    padding: 4px 12px;
     border: 2px solid var(--white);
+    text-transform: uppercase;
   }
 
-  #status.ready  { border-color: var(--white); color: var(--white); }
-  #status.thinking { border-color: var(--amber); color: var(--amber); }
-  #status.error  { border-color: #ff4444; color: #ff4444; }
+  #status.ready   { border-color: var(--white); color: var(--white); }
+  #status.thinking{ border-color: var(--amber); color: var(--amber); }
+  #status.error   { border-color: var(--red);   color: var(--red);   }
 
-  main {
-    flex: 1;
+  .layout {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: calc(100vh - 56px);
+  }
+
+  aside {
+    border-right: 3px solid var(--white);
     display: flex;
     flex-direction: column;
-    padding: 24px;
-    gap: 20px;
-    max-width: 860px;
-    width: 100%;
-    margin: 0 auto;
+    padding: 24px 20px;
+    gap: 24px;
   }
 
-  .row {
-    display: flex;
-    gap: 12px;
-    align-items: stretch;
+  .panel-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.18em;
+    color: var(--dim);
+    text-transform: uppercase;
+    margin-bottom: 8px;
   }
 
   select {
-    background: var(--black);
+    width: 100%;
+    background: var(--bg);
     color: var(--white);
-    border: var(--border);
+    border: 2px solid var(--white);
     font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.85rem;
-    padding: 10px 14px;
+    font-size: 0.78rem;
+    padding: 10px 12px;
     appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
-    min-width: 240px;
+    line-height: 1.4;
   }
 
   select:focus { outline: 2px solid var(--amber); outline-offset: 0; }
+  optgroup { color: var(--dim); font-style: normal; font-size: 0.7rem; }
+  option { color: var(--white); background: var(--bg); padding: 6px; }
 
-  optgroup { font-style: normal; color: #888; }
-
-  textarea {
-    flex: 1;
-    background: var(--black);
-    color: var(--white);
-    border: var(--border);
-    font-family: 'IBM Plex Mono', monospace;
-    font-size: 0.875rem;
-    padding: 14px;
-    resize: vertical;
-    min-height: 120px;
-    line-height: 1.6;
-  }
-
-  textarea:focus { outline: 2px solid var(--amber); outline-offset: 0; }
-  textarea::placeholder { color: #555; }
-
-  button#send {
-    background: var(--amber);
-    color: var(--black);
-    border: 2px solid var(--amber);
-    font-family: 'Archivo Black', sans-serif;
-    font-size: 1rem;
-    letter-spacing: 0.08em;
-    padding: 0 28px;
-    cursor: pointer;
-    box-shadow: 4px 4px 0 var(--white);
-    white-space: nowrap;
-  }
-
-  button#send:active { box-shadow: none; transform: translate(4px, 4px); }
-  button#send:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
-
-  #output-wrap {
-    display: none;
-    flex-direction: column;
-    gap: 0;
-  }
-
-  #output-label {
+  .model-info {
+    border: 2px solid var(--border);
+    padding: 12px;
     font-size: 0.7rem;
-    letter-spacing: 0.12em;
-    color: #888;
-    padding: 6px 0 4px;
+    line-height: 1.8;
+    color: var(--dim);
+  }
+
+  .model-info b { color: var(--amber); font-weight: 600; }
+
+  .divider {
+    height: 2px;
+    background: var(--border);
+  }
+
+  .temp-section { display: flex; flex-direction: column; gap: 8px; }
+
+  .temp-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: 0.72rem;
+  }
+
+  .temp-row span { color: var(--dim); }
+  .temp-row b { color: var(--amber); }
+
+  input[type=range] {
+    -webkit-appearance: none;
+    width: 100%;
+    height: 3px;
+    background: var(--border);
+    accent-color: var(--amber);
+  }
+
+  input[type=range]::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    width: 14px;
+    height: 14px;
+    background: var(--amber);
+    cursor: pointer;
+    border: 2px solid var(--bg);
+  }
+
+  main {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .output-area {
+    flex: 1;
+    padding: 28px 32px;
+    overflow-y: auto;
+  }
+
+  .empty-state {
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--dim);
+    font-size: 0.8rem;
+    letter-spacing: 0.06em;
+    border: 2px dashed var(--border);
+    text-align: center;
+    padding: 40px;
+    line-height: 2;
+  }
+
+  .output-block {
+    display: none;
+    border-left: 4px solid var(--amber);
+    padding: 20px 24px;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--surface);
+    border-top: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+  }
+
+  .output-block.error { border-left-color: var(--red); }
+
+  .output-meta {
+    display: none;
+    font-size: 0.65rem;
+    color: var(--dim);
+    letter-spacing: 0.08em;
+    margin-bottom: 10px;
     text-transform: uppercase;
   }
 
-  #output {
-    border-left: 4px solid var(--amber);
-    padding: 16px 20px;
+  .input-bar {
+    border-top: 3px solid var(--white);
+    padding: 16px 24px;
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+    background: var(--bg);
+  }
+
+  textarea {
+    flex: 1;
+    background: var(--bg);
+    color: var(--white);
+    border: 2px solid var(--white);
+    font-family: 'IBM Plex Mono', monospace;
     font-size: 0.875rem;
-    line-height: 1.7;
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: #111;
-    border-top: var(--border);
-    border-right: var(--border);
-    border-bottom: var(--border);
+    padding: 12px 14px;
+    resize: none;
+    min-height: 52px;
+    max-height: 200px;
+    line-height: 1.6;
+    overflow-y: auto;
+  }
+
+  textarea:focus { outline: 2px solid var(--amber); outline-offset: 0; }
+  textarea::placeholder { color: var(--dim); }
+
+  #send {
+    background: var(--amber);
+    color: #000;
+    border: 2px solid var(--amber);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 0.85rem;
+    letter-spacing: 0.1em;
+    padding: 14px 24px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--white);
+    white-space: nowrap;
+    height: 52px;
+  }
+
+  #send:active  { box-shadow: none; transform: translate(4px, 4px); }
+  #send:disabled{ opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+
+  .hint {
+    font-size: 0.6rem;
+    color: var(--dim);
+    letter-spacing: 0.06em;
+    padding: 6px 24px 0;
   }
 </style>
 </head>
 <body>
 
 <header>
-  <h1>Tungston Tester</h1>
+  <div class="logo">Tungston<span>Tester</span></div>
   <span id="status" class="ready">READY</span>
 </header>
 
-<main>
-  <div>
-    <select id="model">
-      <optgroup label="— FAST">
-        <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
-      </optgroup>
-      <optgroup label="— BALANCED">
-        <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
-      </optgroup>
-      <optgroup label="— LARGE">
-        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
-      </optgroup>
-    </select>
-  </div>
+<div class="layout">
+  <aside>
+    <div>
+      <div class="panel-label">Model</div>
+      <select id="model">
+        <optgroup label="── META / FAST">
+          <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+        </optgroup>
+        <optgroup label="── META / LARGE">
+          <option value="llama-3.3-70b-versatile" selected>llama-3.3-70b-versatile</option>
+        </optgroup>
+        <optgroup label="── OPENAI OSS">
+          <option value="openai/gpt-oss-20b">gpt-oss-20b</option>
+          <option value="openai/gpt-oss-120b">gpt-oss-120b</option>
+        </optgroup>
+      </select>
+    </div>
 
-  <div class="row">
-    <textarea id="prompt" placeholder="Enter your prompt here..."></textarea>
-    <button id="send">SEND</button>
-  </div>
+    <div class="model-info" id="model-info">
+      <div><b>CONTEXT</b> 131,072 tokens</div>
+      <div><b>SPEED</b> ~280 t/s</div>
+      <div><b>TIER</b> Production</div>
+    </div>
 
-  <div id="output-wrap">
-    <div id="output-label">OUTPUT</div>
-    <div id="output"></div>
-  </div>
-</main>
+    <div class="divider"></div>
+
+    <div class="temp-section">
+      <div class="panel-label">Temperature</div>
+      <div class="temp-row">
+        <span>PRECISE</span>
+        <b id="temp-val">0.7</b>
+        <span>CREATIVE</span>
+      </div>
+      <input type="range" id="temp" min="0" max="1" step="0.1" value="0.7">
+    </div>
+  </aside>
+
+  <main>
+    <div class="output-area" id="output-area">
+      <div class="empty-state" id="empty">
+        SELECT A MODEL<br>TYPE A PROMPT<br>HIT SEND
+      </div>
+      <div class="output-meta" id="output-meta"></div>
+      <div class="output-block" id="output"></div>
+    </div>
+    <div class="hint">Ctrl+Enter to send</div>
+    <div class="input-bar">
+      <textarea id="prompt" placeholder="Enter your prompt..." rows="1"></textarea>
+      <button id="send">SEND</button>
+    </div>
+  </main>
+</div>
 
 <script>
-  const statusEl = document.getElementById('status');
-  const promptEl = document.getElementById('prompt');
-  const modelEl  = document.getElementById('model');
-  const sendBtn  = document.getElementById('send');
-  const outputEl = document.getElementById('output');
-  const outputWrap = document.getElementById('output-wrap');
+  const statusEl  = document.getElementById('status');
+  const promptEl  = document.getElementById('prompt');
+  const modelEl   = document.getElementById('model');
+  const sendBtn   = document.getElementById('send');
+  const outputEl  = document.getElementById('output');
+  const metaEl    = document.getElementById('output-meta');
+  const emptyEl   = document.getElementById('empty');
+  const tempEl    = document.getElementById('temp');
+  const tempVal   = document.getElementById('temp-val');
+  const modelInfo = document.getElementById('model-info');
+
+  const MODEL_META = {
+    'llama-3.1-8b-instant':      { context: '131,072', speed: '~560 t/s', tier: 'Production' },
+    'llama-3.3-70b-versatile':   { context: '131,072', speed: '~280 t/s', tier: 'Production' },
+    'openai/gpt-oss-20b':        { context: '131,072', speed: '~500 t/s', tier: 'Production' },
+    'openai/gpt-oss-120b':       { context: '131,072', speed: '~500 t/s', tier: 'Production' },
+  };
+
+  function updateModelInfo() {
+    const m = MODEL_META[modelEl.value] || {};
+    modelInfo.innerHTML = `
+      <div><b>CONTEXT</b> ${m.context || '—'} tokens</div>
+      <div><b>SPEED</b> ${m.speed || '—'}</div>
+      <div><b>TIER</b> ${m.tier || '—'}</div>
+    `;
+  }
+
+  modelEl.addEventListener('change', updateModelInfo);
+  updateModelInfo();
+
+  tempEl.addEventListener('input', () => {
+    tempVal.textContent = tempEl.value;
+  });
+
+  promptEl.addEventListener('input', function() {
+    this.style.height = 'auto';
+    this.style.height = Math.min(this.scrollHeight, 200) + 'px';
+  });
 
   function setStatus(s) {
     statusEl.className = s.toLowerCase();
     statusEl.textContent = s;
   }
 
-  sendBtn.addEventListener('click', async () => {
+  sendBtn.addEventListener('click', send);
+  promptEl.addEventListener('keydown', e => {
+    if (e.key === 'Enter' && e.ctrlKey) send();
+  });
+
+  async function send() {
     const message = promptEl.value.trim();
     if (!message) return;
 
     sendBtn.disabled = true;
     setStatus('THINKING');
-    outputWrap.style.display = 'none';
-    outputEl.textContent = '';
+    emptyEl.style.display = 'none';
+    outputEl.style.display = 'none';
+    metaEl.style.display = 'none';
+    outputEl.classList.remove('error');
+
+    const t0 = Date.now();
 
     try {
       const res = await fetch('/api/chat', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ model: modelEl.value, message })
+        body: JSON.stringify({
+          model: modelEl.value,
+          message,
+          temperature: parseFloat(tempEl.value)
+        })
       });
 
       const data = await res.json();
-
       if (!res.ok) throw new Error(data.error || 'Request failed');
 
+      const elapsed = ((Date.now() - t0) / 1000).toFixed(1);
+      metaEl.textContent = `${modelEl.value} · ${elapsed}s · temp ${tempEl.value}`;
+      metaEl.style.display = 'block';
       outputEl.textContent = data.reply;
-      outputWrap.style.display = 'flex';
+      outputEl.style.display = 'block';
       setStatus('READY');
     } catch (err) {
+      metaEl.textContent = 'ERROR';
+      metaEl.style.display = 'block';
       outputEl.textContent = err.message;
-      outputWrap.style.display = 'flex';
+      outputEl.classList.add('error');
+      outputEl.style.display = 'block';
       setStatus('ERROR');
     } finally {
       sendBtn.disabled = false;
     }
-  });
-
-  promptEl.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendBtn.click();
-  });
+  }
 </script>
 
 </body>
