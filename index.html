@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tungston Tester</title>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600&family=Archivo+Black&display=swap" rel="stylesheet">
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  :root {
+    --black: #0a0a0a;
+    --white: #f0f0f0;
+    --amber: #ffb300;
+    --border: 2px solid #f0f0f0;
+  }
+
+  body {
+    background: var(--black);
+    color: var(--white);
+    font-family: 'IBM Plex Mono', monospace;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+  }
+
+  header {
+    border-bottom: var(--border);
+    padding: 16px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  header h1 {
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+  }
+
+  #status {
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    padding: 4px 10px;
+    border: 2px solid var(--white);
+  }
+
+  #status.ready  { border-color: var(--white); color: var(--white); }
+  #status.thinking { border-color: var(--amber); color: var(--amber); }
+  #status.error  { border-color: #ff4444; color: #ff4444; }
+
+  main {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    padding: 24px;
+    gap: 20px;
+    max-width: 860px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  .row {
+    display: flex;
+    gap: 12px;
+    align-items: stretch;
+  }
+
+  select {
+    background: var(--black);
+    color: var(--white);
+    border: var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    padding: 10px 14px;
+    appearance: none;
+    -webkit-appearance: none;
+    cursor: pointer;
+    min-width: 240px;
+  }
+
+  select:focus { outline: 2px solid var(--amber); outline-offset: 0; }
+
+  optgroup { font-style: normal; color: #888; }
+
+  textarea {
+    flex: 1;
+    background: var(--black);
+    color: var(--white);
+    border: var(--border);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.875rem;
+    padding: 14px;
+    resize: vertical;
+    min-height: 120px;
+    line-height: 1.6;
+  }
+
+  textarea:focus { outline: 2px solid var(--amber); outline-offset: 0; }
+  textarea::placeholder { color: #555; }
+
+  button#send {
+    background: var(--amber);
+    color: var(--black);
+    border: 2px solid var(--amber);
+    font-family: 'Archivo Black', sans-serif;
+    font-size: 1rem;
+    letter-spacing: 0.08em;
+    padding: 0 28px;
+    cursor: pointer;
+    box-shadow: 4px 4px 0 var(--white);
+    white-space: nowrap;
+  }
+
+  button#send:active { box-shadow: none; transform: translate(4px, 4px); }
+  button#send:disabled { opacity: 0.4; cursor: not-allowed; box-shadow: none; }
+
+  #output-wrap {
+    display: none;
+    flex-direction: column;
+    gap: 0;
+  }
+
+  #output-label {
+    font-size: 0.7rem;
+    letter-spacing: 0.12em;
+    color: #888;
+    padding: 6px 0 4px;
+    text-transform: uppercase;
+  }
+
+  #output {
+    border-left: 4px solid var(--amber);
+    padding: 16px 20px;
+    font-size: 0.875rem;
+    line-height: 1.7;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: #111;
+    border-top: var(--border);
+    border-right: var(--border);
+    border-bottom: var(--border);
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <h1>Tungston Tester</h1>
+  <span id="status" class="ready">READY</span>
+</header>
+
+<main>
+  <div>
+    <select id="model">
+      <optgroup label="— FAST">
+        <option value="llama-3.1-8b-instant">llama-3.1-8b-instant</option>
+      </optgroup>
+      <optgroup label="— BALANCED">
+        <option value="mixtral-8x7b-32768">mixtral-8x7b-32768</option>
+      </optgroup>
+      <optgroup label="— LARGE">
+        <option value="llama-3.3-70b-versatile">llama-3.3-70b-versatile</option>
+      </optgroup>
+    </select>
+  </div>
+
+  <div class="row">
+    <textarea id="prompt" placeholder="Enter your prompt here..."></textarea>
+    <button id="send">SEND</button>
+  </div>
+
+  <div id="output-wrap">
+    <div id="output-label">OUTPUT</div>
+    <div id="output"></div>
+  </div>
+</main>
+
+<script>
+  const statusEl = document.getElementById('status');
+  const promptEl = document.getElementById('prompt');
+  const modelEl  = document.getElementById('model');
+  const sendBtn  = document.getElementById('send');
+  const outputEl = document.getElementById('output');
+  const outputWrap = document.getElementById('output-wrap');
+
+  function setStatus(s) {
+    statusEl.className = s.toLowerCase();
+    statusEl.textContent = s;
+  }
+
+  sendBtn.addEventListener('click', async () => {
+    const message = promptEl.value.trim();
+    if (!message) return;
+
+    sendBtn.disabled = true;
+    setStatus('THINKING');
+    outputWrap.style.display = 'none';
+    outputEl.textContent = '';
+
+    try {
+      const res = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ model: modelEl.value, message })
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Request failed');
+
+      outputEl.textContent = data.reply;
+      outputWrap.style.display = 'flex';
+      setStatus('READY');
+    } catch (err) {
+      outputEl.textContent = err.message;
+      outputWrap.style.display = 'flex';
+      setStatus('ERROR');
+    } finally {
+      sendBtn.disabled = false;
+    }
+  });
+
+  promptEl.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) sendBtn.click();
+  });
+</script>
+
+</body>
+</html>
