@@ -15,9 +15,7 @@
     --white: #e8e8e8;
     --dim: #666;
     --amber: #ffb300;
-    --amber-dim: #7a5500;
     --red: #ff3b3b;
-    --green: #39ff14;
   }
 
   body {
@@ -60,9 +58,9 @@
     text-transform: uppercase;
   }
 
-  #status.ready   { border-color: var(--white); color: var(--white); }
-  #status.thinking{ border-color: var(--amber); color: var(--amber); }
-  #status.error   { border-color: var(--red);   color: var(--red);   }
+  #status.ready    { border-color: var(--white); color: var(--white); }
+  #status.thinking { border-color: var(--amber); color: var(--amber); }
+  #status.error    { border-color: var(--red);   color: var(--red);   }
 
   .layout {
     display: grid;
@@ -97,12 +95,11 @@
     appearance: none;
     -webkit-appearance: none;
     cursor: pointer;
-    line-height: 1.4;
   }
 
   select:focus { outline: 2px solid var(--amber); outline-offset: 0; }
   optgroup { color: var(--dim); font-style: normal; font-size: 0.7rem; }
-  option { color: var(--white); background: var(--bg); padding: 6px; }
+  option { color: var(--white); background: var(--bg); }
 
   .model-info {
     border: 2px solid var(--border);
@@ -114,10 +111,7 @@
 
   .model-info b { color: var(--amber); font-weight: 600; }
 
-  .divider {
-    height: 2px;
-    background: var(--border);
-  }
+  .divider { height: 2px; background: var(--border); }
 
   .temp-section { display: flex; flex-direction: column; gap: 8px; }
 
@@ -148,10 +142,7 @@
     border: 2px solid var(--bg);
   }
 
-  main {
-    display: flex;
-    flex-direction: column;
-  }
+  main { display: flex; flex-direction: column; }
 
   .output-area {
     flex: 1;
@@ -173,22 +164,6 @@
     line-height: 2;
   }
 
-  .output-block {
-    display: none;
-    border-left: 4px solid var(--amber);
-    padding: 20px 24px;
-    font-size: 0.85rem;
-    line-height: 1.8;
-    white-space: pre-wrap;
-    word-break: break-word;
-    background: var(--surface);
-    border-top: 2px solid var(--border);
-    border-right: 2px solid var(--border);
-    border-bottom: 2px solid var(--border);
-  }
-
-  .output-block.error { border-left-color: var(--red); }
-
   .output-meta {
     display: none;
     font-size: 0.65rem;
@@ -197,6 +172,22 @@
     margin-bottom: 10px;
     text-transform: uppercase;
   }
+
+  .output-block {
+    display: none;
+    border-left: 4px solid var(--amber);
+    border-top: 2px solid var(--border);
+    border-right: 2px solid var(--border);
+    border-bottom: 2px solid var(--border);
+    padding: 20px 24px;
+    font-size: 0.85rem;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-break: break-word;
+    background: var(--surface);
+  }
+
+  .output-block.error { border-left-color: var(--red); }
 
   .input-bar {
     border-top: 3px solid var(--white);
@@ -239,8 +230,8 @@
     height: 52px;
   }
 
-  #send:active  { box-shadow: none; transform: translate(4px, 4px); }
-  #send:disabled{ opacity: 0.35; cursor: not-allowed; box-shadow: none; }
+  #send:active   { box-shadow: none; transform: translate(4px, 4px); }
+  #send:disabled { opacity: 0.35; cursor: not-allowed; box-shadow: none; }
 
   .hint {
     font-size: 0.6rem;
@@ -272,14 +263,13 @@
           <option value="openai/gpt-oss-20b">gpt-oss-20b</option>
           <option value="openai/gpt-oss-120b">gpt-oss-120b</option>
         </optgroup>
+        <optgroup label="── QWEN / REASONING">
+          <option value="qwen/qwen3.8-27b">qwen3.8-27b</option>
+        </optgroup>
       </select>
     </div>
 
-    <div class="model-info" id="model-info">
-      <div><b>CONTEXT</b> 131,072 tokens</div>
-      <div><b>SPEED</b> ~280 t/s</div>
-      <div><b>TIER</b> Production</div>
-    </div>
+    <div class="model-info" id="model-info"></div>
 
     <div class="divider"></div>
 
@@ -295,10 +285,8 @@
   </aside>
 
   <main>
-    <div class="output-area" id="output-area">
-      <div class="empty-state" id="empty">
-        SELECT A MODEL<br>TYPE A PROMPT<br>HIT SEND
-      </div>
+    <div class="output-area">
+      <div class="empty-state" id="empty">SELECT A MODEL<br>TYPE A PROMPT<br>HIT SEND</div>
       <div class="output-meta" id="output-meta"></div>
       <div class="output-block" id="output"></div>
     </div>
@@ -323,10 +311,11 @@
   const modelInfo = document.getElementById('model-info');
 
   const MODEL_META = {
-    'llama-3.1-8b-instant':      { context: '131,072', speed: '~560 t/s', tier: 'Production' },
-    'llama-3.3-70b-versatile':   { context: '131,072', speed: '~280 t/s', tier: 'Production' },
-    'openai/gpt-oss-20b':        { context: '131,072', speed: '~500 t/s', tier: 'Production' },
-    'openai/gpt-oss-120b':       { context: '131,072', speed: '~500 t/s', tier: 'Production' },
+    'llama-3.1-8b-instant':    { context: '131,072', speed: '~560 t/s', tier: 'Production' },
+    'llama-3.3-70b-versatile': { context: '131,072', speed: '~280 t/s', tier: 'Production' },
+    'openai/gpt-oss-20b':      { context: '131,072', speed: '~500 t/s', tier: 'Production' },
+    'openai/gpt-oss-120b':     { context: '131,072', speed: '~500 t/s', tier: 'Production' },
+    'qwen/qwen3.8-27b':        { context: '131,072', speed: '~fast',    tier: 'Production' },
   };
 
   function updateModelInfo() {
@@ -341,9 +330,7 @@
   modelEl.addEventListener('change', updateModelInfo);
   updateModelInfo();
 
-  tempEl.addEventListener('input', () => {
-    tempVal.textContent = tempEl.value;
-  });
+  tempEl.addEventListener('input', () => { tempVal.textContent = tempEl.value; });
 
   promptEl.addEventListener('input', function() {
     this.style.height = 'auto';
@@ -356,9 +343,7 @@
   }
 
   sendBtn.addEventListener('click', send);
-  promptEl.addEventListener('keydown', e => {
-    if (e.key === 'Enter' && e.ctrlKey) send();
-  });
+  promptEl.addEventListener('keydown', e => { if (e.key === 'Enter' && e.ctrlKey) send(); });
 
   async function send() {
     const message = promptEl.value.trim();

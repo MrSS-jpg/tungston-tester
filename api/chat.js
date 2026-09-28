@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).end();
 
-  const { model, message } = req.body;
+  const { model, message, temperature } = req.body;
 
   const response = await fetch('https://api.groq.com/openai/v1/chat/completions', {
     method: 'POST',
@@ -12,7 +12,7 @@ export default async function handler(req, res) {
     body: JSON.stringify({
       model,
       messages: [{ role: 'user', content: message }],
-      temperature: 0.7
+      temperature: temperature ?? 0.7
     })
   });
 
