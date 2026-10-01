@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tungston Tester — Free AI Model Playground</title>
+<meta name="description" content="Test free NVIDIA NIM models side by side in one chat. Failed requests never count against your limit.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root[data-theme="dark"]{--bg:#0b0b0b;--panel:#141414;--ink:#f5f5f0;--muted:#8d8d86;--line:#f5f5f0;--accent:#ffb400;--on-accent:#0b0b0b;--err:#ff4a3d;--ok:#3ddc84}
+:root[data-theme="light"]{--bg:#efede4;--panel:#ffffff;--ink:#0a0a0a;--muted:#5c5c55;--line:#0a0a0a;--accent:#ffb400;--on-accent:#0a0a0a;--err:#c40000;--ok:#00803a}
+*{box-sizing:border-box;margin:0;padding:0;border-radius:0}
+html,body{height:100%}
+body{background:var(--bg);color:var(--ink);font-family:'IBM Plex Mono',ui-monospace,Menlo,Consolas,monospace;font-size:14px;line-height:1.55;display:flex;flex-direction:column}
+button,select,textarea,input{font:inherit;color:inherit}
+button{cursor:pointer}
+header{display:flex;align-items:center;justify-content:space-between;padding:14px 24px;border-bottom:3px solid var(--line);background:var(--bg)}
+.logo{font-family:'Archivo Black',Impact,sans-serif;font-size:20px;letter-spacing:.06em}
+.logo span{color:var(--accent)}
+.hr{display:flex;gap:12px;align-items:center}
+.chip{border:2px solid var(--line);padding:5px 12px;font-size:11px;font-weight:700;letter-spacing:.14em;background:var(--bg);color:var(--ink);text-transform:uppercase}
+#theme{cursor:pointer}
+#theme:hover{background:var(--accent);color:var(--on-accent)}
+#status.busy{background:var(--accent);color:var(--on-accent)}
+#status.err{background:var(--err);color:#fff;border-color:var(--err)}
+.layout{flex:1;display:flex;min-height:0}
+aside{width:280px;flex-shrink:0;border-right:3px solid var(--line);padding:22px 20px;overflow-y:auto;display:flex;flex-direction:column;gap:26px}
+.label{font-size:11px;letter-spacing:.2em;color:var(--muted);text-transform:uppercase;margin-bottom:10px;font-weight:700}
+select{width:100%;background:var(--panel);border:3px solid var(--line);padding:12px;font-weight:500;appearance:none;-webkit-appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--ink) 50%),linear-gradient(135deg,var(--ink) 50%,transparent 50%);background-position:calc(100% - 20px) 50%,calc(100% - 14px) 50%;background-size:6px 6px;background-repeat:no-repeat}
+select:focus,textarea:focus{outline:3px solid var(--accent);outline-offset:2px}
+.info{border:3px solid var(--line);padding:14px;background:var(--panel);font-size:12px;display:flex;flex-direction:column;gap:6px}
+.info div{display:flex;justify-content:space-between;gap:10px}
+.info b{color:var(--accent);letter-spacing:.12em;font-size:11px;flex-shrink:0}
+.info span{text-align:right;color:var(--ink)}
+.info span.ok{color:var(--ok)}
+.info span.bad{color:var(--err)}
+.bar-row{display:flex;justify-content:space-between;font-size:12px;margin-bottom:8px}
+.bar{height:10px;border:2px solid var(--line);background:var(--panel)}
+.bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+.bar.full i{background:var(--err)}
+.reset{font-size:11px;color:var(--muted);margin-top:8px}
+.temp-row{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);letter-spacing:.1em;margin-bottom:12px;text-transform:uppercase}
+.temp-row b{color:var(--accent)}
+input[type=range]{width:100%;appearance:none;-webkit-appearance:none;height:8px;background:var(--panel);border:2px solid var(--line)}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:20px;height:24px;background:var(--accent);border:3px solid var(--line)}
+input[type=range]::-moz-range-thumb{width:16px;height:20px;background:var(--accent);border:3px solid var(--line)}
+.btn{background:var(--bg);border:3px solid var(--line);padding:10px 14px;font-weight:700;letter-spacing:.14em;font-size:12px;text-transform:uppercase}
+.btn:hover:not(:disabled){background:var(--accent);color:var(--on-accent)}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+main{flex:1;display:flex;flex-direction:column;min-width:0}
+#log{flex:1;overflow-y:auto;padding:28px 32px;display:flex;flex-direction:column;gap:22px}
+.empty{margin:auto;max-width:520px;border:3px solid var(--line);padding:26px;background:var(--panel)}
+.empty h2{font-family:'Archivo Black',Impact,sans-serif;font-size:22px;letter-spacing:.04em;margin-bottom:12px;text-transform:uppercase}
+.empty p{color:var(--muted)}
+.meta{font-size:11px;letter-spacing:.14em;color:var(--muted);text-transform:uppercase;margin-bottom:8px}
+.msg{border:3px solid var(--line);padding:16px 20px;background:var(--panel);white-space:pre-wrap;word-break:break-word}
+.msg.bot{border-left:8px solid var(--accent)}
+.msg.me{align-self:flex-end;max-width:80%;background:var(--accent);color:var(--on-accent);border-color:var(--line);box-shadow:5px 5px 0 var(--line)}
+.wrap.me{align-self:flex-end;max-width:80%;display:flex;flex-direction:column;align-items:flex-end}
+details.think{border:2px dashed var(--muted);margin-bottom:12px;padding:8px 12px;font-size:12px;color:var(--muted)}
+details.think summary{cursor:pointer;letter-spacing:.14em;text-transform:uppercase;font-size:11px;font-weight:700}
+details.think div{margin-top:8px;white-space:pre-wrap}
+.note{margin-top:12px;font-size:12px;color:var(--muted);border-top:2px solid var(--line);padding-top:10px}
+.errbox{border:3px solid var(--err);padding:16px 20px;background:var(--panel)}
+.errbox h3{color:var(--err);font-size:12px;letter-spacing:.18em;text-transform:uppercase;margin-bottom:6px}
+.errbox .acts{display:flex;gap:10px;margin-top:14px;flex-wrap:wrap}
+.cursor::after{content:'▌';color:var(--accent);margin-left:2px}
+.composer{border-top:3px solid var(--line);padding:16px 24px 20px;background:var(--bg)}
+.hint{font-size:11px;color:var(--muted);margin-bottom:8px;letter-spacing:.06em}
+.row{display:flex;gap:16px;align-items:stretch}
+textarea{flex:1;resize:none;background:var(--panel);border:3px solid var(--line);padding:14px;height:62px;max-height:180px}
+#send{background:var(--accent);color:var(--on-accent);border:3px solid var(--line);padding:0 34px;font-family:'Archivo Black',Impact,sans-serif;letter-spacing:.14em;font-size:14px;box-shadow:5px 5px 0 var(--line)}
+#send:active:not(:disabled){transform:translate(4px,4px);box-shadow:1px 1px 0 var(--line)}
+#send:disabled{opacity:.5;cursor:not-allowed}
+@media(max-width:820px){
+header{padding:12px 14px}
+.layout{flex-direction:column}
+aside{width:100%;border-right:0;border-bottom:3px solid var(--line);padding:14px;gap:18px;max-height:46vh}
+#log{padding:18px 14px}
+.composer{padding:12px 14px 16px}
+.msg.me,.wrap.me{max-width:94%}
+#send{padding:0 18px}
+}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">TUNGSTON<span>TESTER</span></div>
+  <div class="hr">
+    <button class="chip" id="theme" type="button" aria-label="Toggle light and dark mode">LIGHT</button>
+    <div class="chip" id="status">LOADING</div>
+  </div>
+</header>
+<div class="layout">
+  <aside>
+    <div>
+      <div class="label">Model</div>
+      <select id="model" aria-label="Model" disabled></select>
+    </div>
+    <div class="info" id="info"></div>
+    <div>
+      <div class="label">Request limit</div>
+      <div class="bar-row"><span>USED</span><b id="usedTxt">0 / 0</b></div>
+      <div class="bar" id="bar"><i id="barFill"></i></div>
+      <div class="reset" id="reset">Failed requests are not counted.</div>
+    </div>
+    <div>
+      <div class="label">Temperature</div>
+      <div class="temp-row"><span>Precise</span><b id="tempVal">0.7</b><span>Creative</span></div>
+      <input type="range" id="temp" min="0" max="1" step="0.1" value="0.7" aria-label="Temperature">
+    </div>
+    <button class="btn" id="clear" type="button">Clear chat</button>
+  </aside>
+  <main>
+    <div id="log"></div>
+    <div class="composer">
+      <div class="hint">Ctrl+Enter to send</div>
+      <div class="row">
+        <textarea id="input" placeholder="Type a prompt to test the selected model" maxlength="8000"></textarea>
+        <button id="send" type="button" disabled>SEND</button>
+      </div>
+    </div>
+  </main>
+</div>
+<script>
+const $ = (id) => document.getElementById(id);
+const S = { models: [], failed: new Set(), history: [], busy: false, limit: 0, used: 0, windowMin: 60, last: null, resetTimer: null };
+
+function setTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  $('theme').textContent = t === 'dark' ? 'LIGHT' : 'DARK';
+  try { localStorage.setItem('tt-theme', t); } catch (e) {}
+}
+(function () {
+  let t = null;
+  try { t = localStorage.getItem('tt-theme'); } catch (e) {}
+  if (t !== 'dark' && t !== 'light') t = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+  setTheme(t);
+})();
+$('theme').onclick = () => setTheme(document.documentElement.getAttribute('data-theme') === 'dark' ? 'light' : 'dark');
+
+function status(txt, cls) {
+  const el = $('status');
+  el.textContent = txt;
+  el.className = 'chip' + (cls ? ' ' + cls : '');
+}
+
+function current() {
+  return S.models.find((m) => m.id === $('model').value);
+}
+
+function renderModels() {
+  const sel = $('model');
+  const prev = sel.value;
+  sel.innerHTML = '';
+  S.models.forEach((m) => {
+    const o = document.createElement('option');
+    o.value = m.id;
+    o.textContent = m.name + (S.failed.has(m.id) ? ' — FAILED' : '');
+    sel.appendChild(o);
+  });
+  if (prev && S.models.some((m) => m.id === prev)) sel.value = prev;
+  sel.disabled = !S.models.length;
+  renderInfo();
+}
+
+function renderInfo() {
+  const m = current();
+  const box = $('info');
+  box.innerHTML = '';
+  if (!m) return;
+  const rows = [['VENDOR', m.vendor], ['TYPE', m.type], ['PARAMS', m.params]];
+  if (m.context) rows.push(['CONTEXT', m.context]);
+  const failed = S.failed.has(m.id);
+  rows.push(['STATE', failed ? 'FAILED THIS SESSION' : m.verified ? 'LISTED ON FREE ENDPOINT' : 'UNVERIFIED', failed ? 'bad' : m.verified ? 'ok' : '']);
+  rows.forEach(([k, v, c]) => {
+    const d = document.createElement('div');
+    const b = document.createElement('b');
+    b.textContent = k;
+    const s = document.createElement('span');
+    s.textContent = v;
+    if (c) s.className = c;
+    d.appendChild(b);
+    d.appendChild(s);
+    box.appendChild(d);
+  });
+}
+
+function renderUsage() {
+  $('usedTxt').textContent = S.used + ' / ' + S.limit;
+  $('barFill').style.width = S.limit ? Math.min(100, (S.used / S.limit) * 100) + '%' : '0%';
+  $('bar').className = 'bar' + (S.limit && S.used >= S.limit ? ' full' : '');
+  if (!(S.limit && S.used >= S.limit)) $('reset').textContent = 'Failed requests are not counted. Resets every ' + (S.windowMin === 60 ? 'hour' : S.windowMin + ' min') + '.';
+  updateSend();
+}
+
+function readUsage(res) {
+  const u = parseInt(res.headers.get('x-rl-used'), 10);
+  const l = parseInt(res.headers.get('x-rl-limit'), 10);
+  if (Number.isFinite(u)) S.used = u;
+  if (Number.isFinite(l)) S.limit = l;
+  renderUsage();
+}
+
+function updateSend() {
+  const blocked = S.busy || !S.models.length || (S.limit && S.used >= S.limit);
+  $('send').disabled = !!blocked;
+}
+
+function startCountdown(sec) {
+  clearInterval(S.resetTimer);
+  let left = sec;
+  const tick = () => {
+    if (left <= 0) {
+      clearInterval(S.resetTimer);
+      S.used = 0;
+      renderUsage();
+      return;
+    }
+    const m = Math.floor(left / 60);
+    $('reset').textContent = 'Limit reached. Resets in ' + (m > 0 ? m + ' min ' : '') + (left % 60) + ' s.';
+    left--;
+  };
+  tick();
+  S.resetTimer = setInterval(tick, 1000);
+}
+
+function scrollDown() {
+  const l = $('log');
+  l.scrollTop = l.scrollHeight;
+}
+
+function clearEmpty() {
+  const e = document.querySelector('.empty');
+  if (e) e.remove();
+}
+
+function showEmpty() {
+  const d = document.createElement('div');
+  d.className = 'empty';
+  d.innerHTML = '<h2>Pick a model. Send a prompt.</h2><p>Every model here runs on NVIDIA\'s free endpoint. If a model fails, the request is not counted against your limit and the model is flagged so you can switch in one click.</p>';
+  $('log').appendChild(d);
+}
+
+function addUser(text) {
+  clearEmpty();
+  const w = document.createElement('div');
+  w.className = 'wrap me';
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = 'YOU';
+  const b = document.createElement('div');
+  b.className = 'msg me';
+  b.textContent = text;
+  w.appendChild(meta);
+  w.appendChild(b);
+  $('log').appendChild(w);
+  scrollDown();
+  return w;
+}
+
+function addBot(modelId, temp) {
+  const w = document.createElement('div');
+  const meta = document.createElement('div');
+  meta.className = 'meta';
+  meta.textContent = modelId + ' · … · TEMP ' + temp;
+  const box = document.createElement('div');
+  box.className = 'msg bot cursor';
+  const think = document.createElement('details');
+  think.className = 'think';
+  think.style.display = 'none';
+  const sum = document.createElement('summary');
+  sum.textContent = 'Thinking';
+  const tb = document.createElement('div');
+  think.appendChild(sum);
+  think.appendChild(tb);
+  const ans = document.createElement('div');
+  box.appendChild(think);
+  box.appendChild(ans);
+  w.appendChild(meta);
+  w.appendChild(box);
+  $('log').appendChild(w);
+  scrollDown();
+  return { w, meta, box, think, tb, ans };
+}
+
+function markFailed(id) {
+  S.failed.add(id);
+  renderModels();
+}
+
+function showError(bot, code, msg, modelId, extra) {
+  bot.w.remove();
+  const e = document.createElement('div');
+  e.className = 'errbox';
+  const h = document.createElement('h3');
+  h.textContent = code === 'QUOTA' ? 'Limit reached' : 'Request failed';
+  const p = document.createElement('div');
+  p.textContent = msg + (code === 'QUOTA' ? '' : ' This request was not counted.');
+  const acts = document.createElement('div');
+  acts.className = 'acts';
+  if (code !== 'QUOTA' && code !== 'NO_KEY') {
+    const r = document.createElement('button');
+    r.className = 'btn';
+    r.textContent = 'Retry';
+    r.onclick = () => { e.remove(); run(S.last); };
+    acts.appendChild(r);
+    const alt = S.models.find((m) => m.id !== modelId && !S.failed.has(m.id));
+    if (alt) {
+      const s = document.createElement('button');
+      s.className = 'btn';
+      s.textContent = 'Switch to ' + alt.name;
+      s.onclick = () => { e.remove(); $('model').value = alt.id; renderInfo(); run(S.last); };
+      acts.appendChild(s);
+    }
+  }
+  e.appendChild(h);
+  e.appendChild(p);
+  if (acts.children.length) e.appendChild(acts);
+  $('log').appendChild(e);
+  scrollDown();
+  status(code === 'QUOTA' ? 'LIMIT' : 'ERROR', 'err');
+  if (code === 'QUOTA' && extra && extra.retryAfter) startCountdown(extra.retryAfter);
+}
+
+async function run(text) {
+  if (S.busy || !text) return;
+  const m = current();
+  if (!m) return;
+  S.busy = true;
+  S.last = text;
+  updateSend();
+  status('STREAMING', 'busy');
+  const temp = parseFloat($('temp').value);
+  const t0 = performance.now();
+  const bot = addBot(m.id, temp.toFixed(1));
+  let think = '';
+  let out = '';
+  try {
+    const res = await fetch('/api/chat', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ model: m.id, temperature: temp, messages: S.history.concat([{ role: 'user', content: text }]).slice(-20) })
+    });
+    readUsage(res);
+    if (!res.ok) {
+      let j = {};
+      try { j = await res.json(); } catch (e) {}
+      const code = j.code || 'MODEL_ERROR';
+      if (code === 'MODEL_UNAVAILABLE' || code === 'MODEL_ERROR' || code === 'TIMEOUT') markFailed(m.id);
+      showError(bot, code, j.error || 'Request failed.', m.id, j);
+      return;
+    }
+    const reader = res.body.getReader();
+    const dec = new TextDecoder();
+    let buf = '';
+    let streamErr = null;
+    for (;;) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buf += dec.decode(value, { stream: true });
+      const lines = buf.split('\n');
+      buf = lines.pop();
+      for (const l of lines) {
+        if (!l.startsWith('data:')) continue;
+        const d = l.slice(5).trim();
+        if (!d || d === '[DONE]') continue;
+        let j;
+        try { j = JSON.parse(d); } catch (e) { continue; }
+        if (j.error) { streamErr = j.error.message || 'Stream interrupted.'; continue; }
+        const dl = j.choices && j.choices[0] && j.choices[0].delta;
+        if (!dl) continue;
+        const r = dl.reasoning_content || dl.reasoning;
+        if (r) { think += r; bot.think.style.display = ''; bot.tb.textContent = think; }
+        if (dl.content) { out += dl.content; bot.ans.textContent = out; }
+      }
+      scrollDown();
+    }
+    const secs = ((performance.now() - t0) / 1000).toFixed(1);
+    bot.meta.textContent = m.id + ' · ' + secs + 's · TEMP ' + temp.toFixed(1);
+    bot.box.classList.remove('cursor');
+    if (!out && !think) {
+      markFailed(m.id);
+      showError(bot, 'MODEL_ERROR', streamErr || 'Model returned an empty response.', m.id);
+      return;
+    }
+    if (!out) {
+      const n = document.createElement('div');
+      n.className = 'note';
+      n.textContent = 'The model spent its token budget thinking and returned no final answer. Try a shorter or more direct prompt.';
+      bot.box.appendChild(n);
+    }
+    if (streamErr) {
+      const n = document.createElement('div');
+      n.className = 'note';
+      n.textContent = 'Stream was cut off early: ' + streamErr;
+      bot.box.appendChild(n);
+    }
+    if (out) {
+      S.history.push({ role: 'user', content: text });
+      S.history.push({ role: 'assistant', content: out });
+    }
+    status('READY');
+  } catch (e) {
+    markFailed(m.id);
+    showError(bot, 'MODEL_ERROR', 'Connection to the server failed.', m.id);
+  } finally {
+    bot.box.classList.remove('cursor');
+    S.busy = false;
+    updateSend();
+    if ($('status').textContent === 'STREAMING') status('READY');
+  }
+}
+
+function send() {
+  const v = $('input').value.trim();
+  if (!v || S.busy) return;
+  addUser(v);
+  $('input').value = '';
+  $('input').style.height = '62px';
+  run(v);
+}
+
+$('send').onclick = send;
+$('input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) { e.preventDefault(); send(); }
+});
+$('input').addEventListener('input', (e) => {
+  e.target.style.height = '62px';
+  e.target.style.height = Math.min(180, e.target.scrollHeight) + 'px';
+});
+$('model').onchange = renderInfo;
+$('temp').oninput = () => { $('tempVal').textContent = parseFloat($('temp').value).toFixed(1); };
+$('clear').onclick = () => {
+  if (S.busy) return;
+  S.history = [];
+  $('log').innerHTML = '';
+  showEmpty();
+  status('READY');
+};
+
+async function init() {
+  showEmpty();
+  try {
+    const res = await fetch('/api/chat');
+    const j = await res.json();
+    if (!res.ok) { status('OFFLINE', 'err'); $('reset').textContent = j.error || 'Server error.'; return; }
+    S.models = j.models;
+    S.limit = j.limit;
+    S.used = j.used;
+    S.windowMin = j.windowMin;
+    renderModels();
+    renderUsage();
+    status(S.models.length ? 'READY' : 'OFFLINE', S.models.length ? '' : 'err');
+  } catch (e) {
+    status('OFFLINE', 'err');
+    $('reset').textContent = 'Could not reach the server.';
+  }
+}
+init();
+</script>
+</body>
+</html>
