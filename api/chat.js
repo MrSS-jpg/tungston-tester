@@ -69,10 +69,10 @@ module.exports = async function handler(req, res) {
   res.setHeader('Cache-Control', 'no-store');
   res.setHeader('X-Content-Type-Options', 'nosniff');
   const ip = clientIp(req);
-  const key = process.env.NVIDIA_API_KEY;
+  const key = process.env.NVIDIA_API_KEY || process.env.NVIDIA_NIM_API_KEY;
   sweep();
 
-  if (!key) return fail(res, ip, 500, 'NO_KEY', 'Server is missing NVIDIA_API_KEY.');
+  if (!key) return fail(res, ip, 500, 'NO_KEY', 'Server is missing NVIDIA_API_KEY or NVIDIA_NIM_API_KEY.');
 
   if (req.method === 'GET') {
     const ids = await getCatalog(key);
