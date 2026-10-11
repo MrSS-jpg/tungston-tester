@@ -1,6 +1,6 @@
 {
   "functions": {
-    "api/chat.js": { "maxDuration": 60 }
+    "api/check.js": { "maxDuration": 15 }
   },
   "headers": [
     {
