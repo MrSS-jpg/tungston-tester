@@ -471,6 +471,89 @@
     font-weight: 600;
     letter-spacing: 0.05em;
   }
+
+  /* Mobile Responsive Enhancements */
+  @media(max-width: 768px) {
+    header.topbar {
+      padding: 10px 14px;
+      gap: 10px;
+    }
+    .brand-group {
+      gap: 8px;
+    }
+    .nav-links {
+      width: 100%;
+      gap: 6px;
+    }
+    .nav-btn {
+      flex: 1;
+      text-align: center;
+      padding: 8px 10px;
+      font-size: 0.7rem;
+    }
+    main {
+      padding: 16px 12px 36px;
+      gap: 16px;
+    }
+    .hero {
+      padding-bottom: 14px;
+      gap: 4px;
+    }
+    .hero-title {
+      font-size: clamp(1.4rem, 6.5vw, 2.4rem);
+    }
+    .hero-desc {
+      font-size: 0.8rem;
+    }
+    .tool-tabs {
+      flex-wrap: nowrap;
+      overflow-x: auto;
+      -webkit-overflow-scrolling: touch;
+      scrollbar-width: none;
+      gap: 6px;
+      padding: 4px;
+    }
+    .tool-tabs::-webkit-scrollbar { display: none; }
+    .tool-tab {
+      flex: 0 0 auto;
+      min-width: unset;
+      padding: 8px 14px;
+      font-size: 0.72rem;
+      white-space: nowrap;
+    }
+    .panel-header {
+      padding: 8px 12px;
+      gap: 8px;
+    }
+    .panel-body {
+      padding: 12px;
+      gap: 12px;
+    }
+    textarea, input[type="text"] {
+      font-size: 16px !important;
+      padding: 10px 12px;
+    }
+    .btn {
+      padding: 10px 14px;
+      min-height: 40px;
+    }
+    pre {
+      font-size: 0.78rem;
+      padding: 10px;
+      max-height: 360px;
+    }
+    .chips-bar {
+      gap: 4px;
+    }
+    .chip {
+      padding: 4px 7px;
+      font-size: 0.68rem;
+    }
+    .status-badge-lg {
+      font-size: 0.95rem;
+      padding: 5px 10px;
+    }
+  }
 </style>
 </head>
 <body>
@@ -585,7 +668,7 @@
         <div class="panel-header">
           <span class="panel-title">Field Breakdown</span>
         </div>
-        <div class="panel-body" style="padding: 0;">
+        <div class="panel-body" style="padding: 0; overflow-x: auto; -webkit-overflow-scrolling: touch;">
           <table class="cron-table">
             <thead>
               <tr><th>Field</th><th>Value</th><th>Meaning</th></tr>
@@ -623,7 +706,7 @@
     <div class="panel">
       <div class="panel-header">
         <span class="panel-title"><span class="panel-badge">PATTERN</span> Regular Expression</span>
-        <div style="display: flex; gap: 10px; font-size: 0.75rem; font-weight: 700;">
+        <div style="display: flex; gap: 8px 12px; font-size: 0.75rem; font-weight: 700; flex-wrap: wrap;">
           <label style="margin: 0; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="regex-flag-g" checked> g (global)</label>
           <label style="margin: 0; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="regex-flag-i"> i (ignore case)</label>
           <label style="margin: 0; display: inline-flex; align-items: center; gap: 4px; cursor: pointer;"><input type="checkbox" id="regex-flag-m"> m (multiline)</label>
